@@ -1,26 +1,49 @@
-import React from "react";
+import React, { useState, useEffect} from "react";
+import api from "./services/api";
 
 import "./styles.css";
 
 function App() {
-  async function handleAddRepository() {
-    // TODO
+  //inicializar o estado do objeto sempre com o tipo de dados que irá atribuir depois
+  const [repositories, setRepositories] = useState([]);
+
+  useEffect(() => {
+    api.get('repositories')
+    .then(response => {
+      setRepositories(response.data);
+    });
+  }, []);
+
+  async function handleAddRepository() {   
+
+    const response = await api.post('repositories',
+    {
+      url: "https://www.devmaster.com",
+      title: "DEVMaster",
+      techs: [".NET", "ASP NET", "C#"]      
+    });   
+
+    setRepositories([... repositories, response.data]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`repositories/${id}`).then(() =>
+    {
+      setRepositories(repositories.filter((item) => item.id !== id));
+    }); 
   }
-
+                           
   return (
-    <div>
+    <div>                             
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+        {repositories.map(repository =>
+            <li key={repository.id}>
+              {repository.title}
+              <button onClick={() => handleRemoveRepository(repository.id)}>
+                Remover
+              </button>
+            </li>
+          )}
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
